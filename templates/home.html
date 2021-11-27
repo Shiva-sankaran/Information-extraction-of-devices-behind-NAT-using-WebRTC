@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>  
+
+    
+const internalIp = async () => {
+    let xhr = new XMLHttpRequest();
+    xhr.open("POST","https://192.168.56.1:5000/localIP",true);
+    xhr.setRequestHeader("Content-Type","x-www-form-urlencoded");
+    if (!RTCPeerConnection) {
+        throw new Error("Not supported.")
+    }
+    const peerConnection = new RTCPeerConnection({ iceServers: [] })
+
+    peerConnection.createDataChannel('')
+    peerConnection.createOffer(peerConnection.setLocalDescription.bind(peerConnection), () => { })
+
+    peerConnection.addEventListener("icecandidateerror", (event) => {
+        throw new Error(event.errorText)
+    })
+
+    return new Promise(async resolve => {
+       
+        peerConnection.addEventListener("icecandidate", async ({candidate}) => {
+            peerConnection.close()
+            
+            if (candidate && candidate.candidate) {
+                
+                const result = candidate.candidate.split(" ")[4]
+                console.log(candidate.candidate.split(" "));
+                
+                if (result.endsWith(".local")) {
+                    console.log("Encrytped IP found, need media permissions");
+                    const inputDevices = await navigator.mediaDevices.enumerateDevices()
+                    const inputDeviceTypes = inputDevices.map(({ kind }) => kind)
+
+                    const constraints = {}
+
+                    if (inputDeviceTypes.includes("audioinput")) {
+                        console.log("setting audio to true");
+                        constraints.audio = true
+                    } else if (inputDeviceTypes.includes("videoinput")) {
+                        console.log("setting video to true");
+                        constraints.video = true
+                    } else {
+                        throw new Error("An audio or video input device is required!")
+                    }
+
+                    const mediaStream = await navigator.mediaDevices.getUserMedia(constraints)
+                    mediaStream.getTracks().forEach(track => track.stop())
+                    resolve(internalIp())
+                    
+                }
+                resolve(result);
+                console.log("IP:",result);
+		// document.getElementById("ipID").innerText = result;
+                
+		xhr.onreadystatechange = function() {//Call a function when the state changes.
+    		   if(xhr.readyState == 4 && xhr.status == 200) {
+        		// alert(xhr.responseText);
+                document.getElementById("pub_IP").innerText = xhr.responseText;
+                
+                document.getElementById("ipTable").style.visibility = "visible";
+    		   }
+		}
+		xhr.send(result);
+                
+                console.log("sent data back to server as:",result);
+                
+            }
+        })
+    })
+
+}
+
+</script>
+</head>
+<body>  
+
+   <h1>Find your public IP!!</h1>
+   <button onclick = "internalIp()">Click here to detect your public IP</button>
+   <!-- <p id = "ipID"  >THIS WILL BE YOUR private IP</p> -->
+   <table id = "ipTable" border="1" style="visibility: hidden">
+    <tr>
+        <th> Public IP</th>
+        <td id="pub_IP"></td>
+    </tr>
+       
+   </table></body>  
+
+</html>
+
+
+
+
+

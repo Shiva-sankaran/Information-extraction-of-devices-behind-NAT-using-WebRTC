@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title> CLIENT DATA</title>
+</head>
+<body>
+	<table id = client_table border="2">
+	<tr> 
+		<td>public IP</td>
+    <td>private IP</td>
+    <td>Operating system</td>
+    <td>Browser</td>
+    <td>Version</td>
+    <td>User-agent info</td>
+    <td> IP info</td>
+
+	</tr>
+  {% for row in test %}
+  <tr>
+    <td>{{row[0]}}</td>
+    <td>{{row[1]}}</td>
+    <td>{{row[2]}}</td>
+    <td>{{row[3]}}</td>
+    <td>{{row[4]}}</td>
+    <td>{{row[5]}}</td>
+    <td>{{row[6]}}</td>
+  </tr> 
+  {% endfor %}
+</table>
+
+</body>
+</html>
